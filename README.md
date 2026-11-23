@@ -75,9 +75,9 @@ Everything is copied into your new repository, so change these before the first 
 Then, in the repository settings:
 
 - Create `staging`, then apply `.github/rulesets/staging.json` with
-  `gh api -X POST repos/<owner>/<repo>/rulesets --input <file>`. Apply `main.json` once the Octo STS app is
-  installed: it lets only the app update `main`, so `main` then moves only through `promote.yml`. Feature
-  branches target `staging`.
+  `gh api -X POST repos/<owner>/<repo>/rulesets --input <file>`. Apply `main.json` and `tags.json` once the
+  Octo STS app is installed: they let only the app update `main` and create tags, so `main` then moves only
+  through `promote.yml`. Feature branches target `staging`.
 - Enable the repository on [Codecov](https://about.codecov.io/) and set `fail_ci_if_error: true` in `ci.yml`.
 - Install the [Octo STS app](https://github.com/apps/octo-sts/installations/new) on the repository, then set
   the `RELEASES_ENABLED` variable to `true`. Releases stay held until then.

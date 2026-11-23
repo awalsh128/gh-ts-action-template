@@ -23,6 +23,9 @@ USAGE
 
 DRY_RUN=false
 
+# Rulesets whose only bypass actor is the Octo STS app, applied after the app-install pause.
+readonly LOCKED_RULESETS=(main.json tags.json)
+
 readonly OCTO_STS_INSTALL_URL="https://github.com/apps/octo-sts/installations/new"
 
 # Prints a step heading.
@@ -209,10 +212,10 @@ main() {
     gh api -X PATCH "repos/$slug" -F allow_merge_commit=false -F allow_rebase_merge=false \
       -F allow_squash_merge=true -f squash_merge_commit_title=PR_TITLE -f squash_merge_commit_message=BLANK \
       -F delete_branch_on_merge=true --silent
-    # main is applied after the Octo STS pause: its only bypass actor is the app, so until the app is installed
-    # the ruleset would lock main with nothing allowed to promote it.
+    # The locked rulesets wait for the Octo STS pause: their only bypass actor is the app, so until it is
+    # installed they would lock main and tags with nothing allowed to promote or release.
     for file in .github/rulesets/*.json; do
-      [[ -e "$file" && "$file" != ".github/rulesets/main.json" ]] || continue
+      [[ -e "$file" && " ${LOCKED_RULESETS[*]} " != *" $(basename "$file") "* ]] || continue
       apply_ruleset "$slug" "$file"
     done
   fi
@@ -223,9 +226,11 @@ main() {
     wait_for_octo_sts "$slug"
   fi
 
-  if [[ "$rulesets" == true && -e .github/rulesets/main.json ]]; then
-    step "Lock main to promotion"
-    apply_ruleset "$slug" .github/rulesets/main.json
+  if [[ "$rulesets" == true ]]; then
+    step "Lock main and tags to the Octo STS app"
+    for name in "${LOCKED_RULESETS[@]}"; do
+      [[ -e ".github/rulesets/$name" ]] && apply_ruleset "$slug" ".github/rulesets/$name"
+    done
   fi
 
   step "Done"
@@ -234,7 +239,6 @@ Next steps in ./$repo:
   - Replace the sample "greet" action (action.yml, src/, test/) and rewrite README.md and AGENTS.md.
   - Enable the repository on Codecov, then set fail_ci_if_error: true in .github/workflows/ci.yml.
   - Open pull requests against staging; main is updated by promotion.
-  - Add a tag ruleset that restricts tag creation, with the Octo STS app as bypass actor.
   - Enable releases with: gh variable set RELEASES_ENABLED --body true --repo $slug
   - main now moves only by promotion: gh workflow run promote.yml --ref staging
 NEXT
