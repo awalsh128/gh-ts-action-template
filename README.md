@@ -61,8 +61,11 @@ Then, in the repository settings:
 
 - Create a `staging` branch; feature branches target it and it is promoted to `main`.
 - Enable the repository on [Codecov](https://about.codecov.io/) and set `fail_ci_if_error: true` in `ci.yml`.
-- Releases are not wired up yet: `release.config.ts` configures semantic-release, but no release workflow ships
-  with the template.
+- Install the [Octo STS app](https://github.com/apps/octo-sts/installations/new) on the repository, then set
+  the `RELEASES_ENABLED` variable to `true`. Releases stay held until then. `publish.yml` releases with
+  semantic-release; `install-template.sh --release-tool release-please` swaps in
+  [release-please](https://github.com/googleapis/release-please) instead, where merging its Release PR on
+  `staging` cuts the release.
 
 ## What's included
 
@@ -75,7 +78,7 @@ Then, in the repository settings:
 | `release.config.ts`                                       | semantic-release branches and plugins                    |
 | `rollup.config.mjs`, `tsconfig*.json`, `vitest.config.ts` | Build, typecheck and test config                         |
 
-`dist/` is gitignored and built in CI. Never edit it by hand.
+`dist/action/index.js` is committed because the release tag ships it, and CI fails when it is stale. Regenerate it with `npm run build`; never edit it by hand.
 
 ## The sample action
 

@@ -1,0 +1,73 @@
+# Promotes staging to main by fast-forwarding main to staging's latest commit. The release was already cut
+# on staging by merging the Release PR (release-please.yml). main never gets commits of its own, so it is
+# always an ancestor of staging.
+# Start it with: gh workflow run promote.yml --ref staging
+name: Promote staging to main
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: promote
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read # Read CI runs
+      id-token: write # For OIDC: the Octo STS token that updates main
+    steps:
+      # The trust policy only accepts runs on staging, and a default `gh workflow run` dispatches on main,
+      # where Octo STS fails with "token does not match trust policy". Fail first, saying why.
+      - name: Require the workflow to run on staging
+        if: github.ref != 'refs/heads/staging'
+        env:
+          REF: ${{ github.ref }}
+        run: |
+          echo "::error::Promote was started on $REF. Octo STS only issues the main token to runs on staging."
+          echo "Run: gh workflow run promote.yml --ref staging"
+          exit 1
+
+      # main's ruleset only lets the Octo STS app update it, so main is pushed with its token,
+      # issued under .github/chainguard/promote.sts.yaml to this workflow on staging only.
+      - name: Create main token
+        id: octo-sts
+        uses: octo-sts/action@f603d3be9d8dd9871a265776e625a27b00effe05 # v1.1.1
+        with:
+          scope: ${{ github.repository }}
+          identity: promote
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: staging
+          fetch-depth: 0
+          token: ${{ steps.octo-sts.outputs.token }}
+
+      - name: Resolve staging commit
+        id: staging
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Require CI success on staging
+        uses: ./.github/actions/require-ci-success
+        with:
+          sha: ${{ steps.staging.outputs.sha }}
+          token: ${{ github.token }}
+
+      - name: Fast-forward main to staging
+        env:
+          STAGING_SHA: ${{ steps.staging.outputs.sha }}
+        run: |
+          set -euo pipefail
+          if ! git merge-base --is-ancestor origin/main "$STAGING_SHA"; then
+            echo "::error::main has commits that are not on staging, so it can't be fast-forwarded."
+            echo "Get those commits onto staging through a pull request, then promote again."
+            exit 1
+          fi
+          # Not a force push, so the remote rejects anything but a fast-forward.
+          git push origin "$STAGING_SHA:refs/heads/main"

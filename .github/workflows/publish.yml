@@ -1,0 +1,104 @@
+# Releases the action, always gated by CI:
+# - staging: started by hand, releasing a candidate (e.g. v1.2.0-rc.1) as a GitHub pre-release.
+# - main: promote.yml starts this after fast-forwarding main, releasing an official version.
+# A release only creates a tag and a GitHub Release; the committed dist/ is what consumers run. The files
+# consumers run are archived from the tagged commit and attested, so `gh attestation verify` checks them.
+# No secrets: the job's OIDC token is exchanged for the tag token (Octo STS) and the attestation.
+name: Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "Run the release process without creating a tag or release"
+        type: boolean
+        required: false
+        default: false
+
+permissions: {}
+
+jobs:
+  release:
+    # Off switch for every route to a release. Releases stay held until RELEASES_ENABLED is 'true'; a dry run
+    # publishes nothing, so it is always allowed.
+    if: ${{ vars.RELEASES_ENABLED == 'true' || inputs.dry-run }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: release
+    # One release per branch at a time; never cancel one that is tagging.
+    concurrency:
+      group: release-${{ github.ref }}
+      cancel-in-progress: false
+    permissions:
+      actions: read # For checking CI results
+      contents: write # For uploading the archive to the GitHub Release
+      id-token: write # For OIDC: the Octo STS tag token and the attestation
+      attestations: write # For the build provenance attestation
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0 # semantic-release reads every commit and tag since the last release
+          persist-credentials: false
+
+      - name: Require CI success
+        uses: ./.github/actions/require-ci-success
+        with:
+          sha: ${{ github.sha }}
+          token: ${{ github.token }}
+
+      # This job can mint a tag token, so dependencies' install scripts don't run.
+      - name: Setup
+        uses: ./.github/actions/setup
+        with:
+          ignore-scripts: "true"
+
+      # The tag is created on this commit, so dist/ must be exactly what the source builds to.
+      - name: Verify the committed bundle is current
+        run: |
+          set -euo pipefail
+          npm run build
+          if [ -n "$(git status --porcelain -- dist)" ]; then
+            echo "::error::dist/ is out of date. Run npm run build and commit the result."
+            git status --porcelain -- dist
+            exit 1
+          fi
+
+      - name: Create tag token
+        id: octo-sts
+        uses: octo-sts/action@f603d3be9d8dd9871a265776e625a27b00effe05 # v1.1.1
+        with:
+          scope: ${{ github.repository }}
+          identity: release
+
+      - name: Release
+        env:
+          GITHUB_TOKEN: ${{ steps.octo-sts.outputs.token }}
+          DRY_RUN: ${{ inputs.dry-run && '--dry-run' || '' }}
+        run: npx semantic-release $DRY_RUN
+
+      # semantic-release commits nothing, so a new release is the tag on this commit.
+      - name: Archive the release
+        id: archive
+        if: ${{ !inputs.dry-run }}
+        run: |
+          set -euo pipefail
+          tag="$(git tag --points-at HEAD --list 'v[0-9]*' | sort -V | tail -n1)"
+          if [ -z "$tag" ]; then
+            echo "No release was created for this commit."
+            exit 0
+          fi
+          git archive --format=tar.gz --output="action-${tag}.tar.gz" HEAD action.yml dist package.json package-lock.json
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Attest the archive
+        if: steps.archive.outputs.tag != ''
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: action-${{ steps.archive.outputs.tag }}.tar.gz
+
+      - name: Upload the archive to the release
+        if: steps.archive.outputs.tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.archive.outputs.tag }}
+        run: gh release upload "$TAG" "action-${TAG}.tar.gz"

@@ -18,7 +18,7 @@ Rules for agents working in this TypeScript GitHub Action.
 - Logic lives in `src/action.ts` and domain modules; dependencies are passed in, never read from `process.env`.
 - Input names are `snake_case`, output names `kebab-case`, TypeScript fields camelCase.
 - Relative imports end in `.js`. TSDoc on every export. Fail with `core.setFailed`, no silent fallbacks.
-- `dist/` is gitignored and built in CI. NEVER hand-edit it.
+- `dist/action/index.js` is committed because the tag ships it. Regenerate it with `npm run build`; CI fails when it is stale. NEVER hand-edit it.
 
 ## Logging
 

@@ -1,5 +1,10 @@
 name: Setup
 description: Install Node and dependencies, then reuse or build the action bundle.
+inputs:
+  ignore-scripts:
+    description: "Install with --ignore-scripts. Set for jobs that can mint release or tag tokens."
+    required: false
+    default: "false"
 runs:
   using: composite
   steps:
@@ -7,8 +12,10 @@ runs:
       with:
         node-version-file: .node_ver
         cache: npm
-    - run: npm ci
+    - run: npm ci ${IGNORE_SCRIPTS_FLAG}
       shell: bash
+      env:
+        IGNORE_SCRIPTS_FLAG: ${{ inputs.ignore-scripts == 'true' && '--ignore-scripts' || '' }}
     - id: download
       uses: dawidd6/action-download-artifact@a92c7ae74cf1df8810783758581e485ac3aaa309 # v28
       with:
