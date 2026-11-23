@@ -47,7 +47,8 @@ that you replace with your own.
 
    Or, from a clone of this repository, let `install-template.sh` do it all: it creates the repository, renames
    the placeholders, points the Octo STS trust policies at it, verifies the build, creates `staging`, applies
-   the branch rules, and pauses until you confirm the Octo STS app is installed.
+   the branch rules, limits the `release` environment to `main` and `staging`, and pauses until you confirm the
+   Octo STS app is installed. Then it locks `main` and tags to the app.
 
    ```bash
    ./install-template.sh <owner>/<your-action> --description "What it does"

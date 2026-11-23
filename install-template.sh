@@ -95,6 +95,27 @@ apply_ruleset() {
   fi
 }
 
+# Restricts the release environment to main and staging, the only branches that release. The environment
+# does not exist until its first run names it, and this creates it. A failure warns with the manual
+# commands instead of stopping the script. Arg: owner/repo.
+restrict_release_environment() {
+  local slug="$1" branch ok=true
+  gh api -X PUT "repos/$slug/environments/release" -F "deployment_branch_policy[protected_branches]=false" \
+    -F "deployment_branch_policy[custom_branch_policies]=true" --silent || ok=false
+  if [[ "$ok" == true ]]; then
+    for branch in main staging; do
+      gh api -X POST "repos/$slug/environments/release/deployment-branch-policies" -f name="$branch" \
+        -f type=branch --silent || ok=false
+    done
+  fi
+  if [[ "$ok" == true ]]; then
+    echo "restricted the release environment to main and staging"
+  else
+    echo "!! Could not restrict the release environment. In the repository settings under Environments," >&2
+    echo "   limit release to the main and staging branches." >&2
+  fi
+}
+
 # Stops until the user confirms the Octo STS app is installed on the repository. A user token cannot list
 # app installations (GitHub answers 403), so the script cannot check; it asks. Arg: owner/repo.
 wait_for_octo_sts() {
@@ -218,6 +239,7 @@ main() {
       [[ -e "$file" && " ${LOCKED_RULESETS[*]} " != *" $(basename "$file") "* ]] || continue
       apply_ruleset "$slug" "$file"
     done
+    restrict_release_environment "$slug"
   fi
 
   # Only repositories that carry trust policies use Octo STS.
