@@ -1,0 +1,57 @@
+{
+  "name": "gh-ts-action-template",
+  "version": "0.0.0-semantically-released",
+  "description": "Template for starting TypeScript-based GitHub Actions.",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/awalsh128/gh-ts-action-template.git"
+  },
+  "license": "Apache-2.0",
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/awalsh128"
+  },
+  "scripts": {
+    "runall": "node ./node_modules/npm-run-all/bin/npm-run-all/index.js",
+    "build:lib": "tsc -p tsconfig.build.json",
+    "bundle": "rollup -c rollup.config.mjs",
+    "build": "npm run -s runall -- build:lib bundle",
+    "clean": "rm -rf dist coverage",
+    "lint": "eslint src test scripts",
+    "typecheck:lib": "tsc -p tsconfig.json --noEmit",
+    "typecheck:scripts": "tsc -p tsconfig.scripts.json --noEmit",
+    "typecheck": "npm run -s runall -- typecheck:lib typecheck:scripts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run --coverage",
+    "check:bundle": "node --experimental-strip-types scripts/ops/check_bundle.mts",
+    "release": "semantic-release",
+    "release:dry-run": "semantic-release --dry-run"
+  },
+  "dependencies": {
+    "@actions/artifact": "6.3.1",
+    "@actions/core": "^3.0.1",
+    "@awalsh128/winston-github-actions": "3.0.1"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^29.0.3",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@types/node": "^26.6.6",
+    "@typescript-eslint/parser": "^8.74.0",
+    "@vitest/coverage-v8": "^5.1.1",
+    "eslint": "^10.15.0",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^3.10.1",
+    "rollup": "^4.68.8",
+    "semantic-release": "^25.0.9",
+    "type-coverage": "^2.31.2",
+    "typescript": "^6.0.3",
+    "vitest": "^5.1.1"
+  }
+}
