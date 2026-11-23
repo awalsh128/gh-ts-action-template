@@ -3,17 +3,17 @@
   "skills": {
     "check-pr-release-type": {
       "source": "awalsh128/skills",
-      "commit": "f0576701aec4fb5a559a8edc262cf24a0adb3d1b",
+      "commit": "f3106cd5edac889ec41b57a61c76730166bd9b75",
       "sourceType": "github",
       "skillPath": "skills/github/check-pr-release-type/SKILL.md",
-      "computedHash": "5bf4f385339909f89d28ab3b45830e95850047c7d51d8cbd4254fede15c1deb9"
+      "computedHash": "64d93b46b10bb4bb1991f52a78303769c6e482a425e00b03a51013030bf2a39f"
     },
     "code-design": {
       "source": "awalsh128/skills",
-      "commit": "f0576701aec4fb5a559a8edc262cf24a0adb3d1b",
+      "commit": "f3106cd5edac889ec41b57a61c76730166bd9b75",
       "sourceType": "github",
       "skillPath": "skills/lang/code-design/SKILL.md",
-      "computedHash": "d2366cecf23ad20afd6f1d449f0b54ace63092dc1125de54df6bb0c0f7f555d9"
+      "computedHash": "cf28416b2780b6c52d47f700b39fa033fc7052f553aed01d6a48b8d602c49d06"
     },
     "create-readme": {
       "source": "awalsh128/skills",
@@ -24,17 +24,17 @@
     },
     "github-cicd": {
       "source": "awalsh128/skills",
-      "commit": "f0576701aec4fb5a559a8edc262cf24a0adb3d1b",
+      "commit": "f3106cd5edac889ec41b57a61c76730166bd9b75",
       "sourceType": "github",
       "skillPath": "skills/github/github-cicd/SKILL.md",
-      "computedHash": "27f1b119ffb56a9a5572b8b0e160c5d063a1e5da1fd1feec4faba2085af09d98"
+      "computedHash": "1a96f0fa01bedf1bd155443d657068d160af53a28163d96bb6f11ff642a20571"
     },
     "github-ts-action": {
       "source": "awalsh128/skills",
-      "commit": "f0576701aec4fb5a559a8edc262cf24a0adb3d1b",
+      "commit": "f3106cd5edac889ec41b57a61c76730166bd9b75",
       "sourceType": "github",
       "skillPath": "skills/github/github-ts-action/SKILL.md",
-      "computedHash": "d1a0d994bf50e7389a49d57f5852a109fa96768153a2733f14d35b7be1201c6c"
+      "computedHash": "e6ba794fc437592e94b729e55283a2e1bacaad20468af6ae6b60ca2eaf9c3b9f"
     },
     "npm-audit": {
       "source": "awalsh128/skills",
@@ -59,10 +59,10 @@
     },
     "unit-tests": {
       "source": "awalsh128/skills",
-      "commit": "f0576701aec4fb5a559a8edc262cf24a0adb3d1b",
+      "commit": "f3106cd5edac889ec41b57a61c76730166bd9b75",
       "sourceType": "github",
       "skillPath": "skills/testing/unit-tests/SKILL.md",
-      "computedHash": "cd41efa4add5a92c0ca8cdedac35074b5bb479a8173576a062a99e8c09952fef"
+      "computedHash": "823ac3f555b9d1798c014f002cae69d38b1b2768c1e24f009ded8c6386c1ef3b"
     }
   }
 }
