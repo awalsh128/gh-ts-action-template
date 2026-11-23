@@ -82,6 +82,16 @@ retarget_policies() {
   done
 }
 
+# Creates one ruleset from a file. A failure warns with the manual command instead of stopping the script,
+# because the repository is already usable. Args: owner/repo file.
+apply_ruleset() {
+  local slug="$1" file="$2"
+  if ! gh api -X POST "repos/$slug/rulesets" --input "$file" --jq '"applied ruleset: " + .name'; then
+    echo "!! Could not apply $file. Apply it later with:" >&2
+    echo "   gh api -X POST repos/$slug/rulesets --input $file" >&2
+  fi
+}
+
 # Stops until the user confirms the Octo STS app is installed on the repository. A user token cannot list
 # app installations (GitHub answers 403), so the script cannot check; it asks. Arg: owner/repo.
 wait_for_octo_sts() {
@@ -199,9 +209,11 @@ main() {
     gh api -X PATCH "repos/$slug" -F allow_merge_commit=false -F allow_rebase_merge=false \
       -F allow_squash_merge=true -f squash_merge_commit_title=PR_TITLE -f squash_merge_commit_message=BLANK \
       -F delete_branch_on_merge=true --silent
+    # main is applied after the Octo STS pause: its only bypass actor is the app, so until the app is installed
+    # the ruleset would lock main with nothing allowed to promote it.
     for file in .github/rulesets/*.json; do
-      [[ -e "$file" ]] || continue
-      gh api -X POST "repos/$slug/rulesets" --input "$file" --jq '"applied ruleset: " + .name'
+      [[ -e "$file" && "$file" != ".github/rulesets/main.json" ]] || continue
+      apply_ruleset "$slug" "$file"
     done
   fi
 
@@ -211,15 +223,20 @@ main() {
     wait_for_octo_sts "$slug"
   fi
 
+  if [[ "$rulesets" == true && -e .github/rulesets/main.json ]]; then
+    step "Lock main to promotion"
+    apply_ruleset "$slug" .github/rulesets/main.json
+  fi
+
   step "Done"
   cat <<NEXT
 Next steps in ./$repo:
   - Replace the sample "greet" action (action.yml, src/, test/) and rewrite README.md and AGENTS.md.
   - Enable the repository on Codecov, then set fail_ci_if_error: true in .github/workflows/ci.yml.
   - Open pull requests against staging; main is updated by promotion.
-  - Once the Octo STS app is installed: add it as a bypass actor on the main ruleset and a tag ruleset
-    (restrict updates to main and tag creation), then enable releases with
-    gh variable set RELEASES_ENABLED --body true --repo $slug
+  - Add a tag ruleset that restricts tag creation, with the Octo STS app as bypass actor.
+  - Enable releases with: gh variable set RELEASES_ENABLED --body true --repo $slug
+  - main now moves only by promotion: gh workflow run promote.yml --ref staging
 NEXT
 }
 
