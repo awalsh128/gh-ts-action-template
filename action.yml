@@ -18,9 +18,9 @@ inputs:
     required: false
     default: "false"
   upload_io:
-    description: "Upload the inputs and outputs as the workflow artifact action-io-<run>-<attempt>-<job>-<step>. Inputs are uploaded as given, so leave this off when any input holds a secret. One of: true, false."
+    description: "When to upload the inputs and outputs as the workflow artifact action-io-<run>-<attempt>-<job>-<step>. Inputs are uploaded as given, so keep this at never when any input holds a secret. One of: never, failure, always."
     required: false
-    default: "false"
+    default: "never"
 outputs:
   greeting:
     description: "The generated greeting text."

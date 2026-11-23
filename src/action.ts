@@ -4,12 +4,18 @@ export const GREETING_STYLES = ["friendly", "formal"] as const;
 /** One of {@link GREETING_STYLES}. */
 export type GreetingStyle = (typeof GREETING_STYLES)[number];
 
+/** When to upload the inputs and outputs as an artifact. */
+export const UPLOAD_MODES = ["never", "failure", "always"] as const;
+
+/** One of {@link UPLOAD_MODES}. */
+export type UploadMode = (typeof UPLOAD_MODES)[number];
+
 /** Validated inputs of the action. Field names are camelCase versions of the `action.yml` inputs. */
 export interface ActionInputs {
   readonly name: string;
   readonly style: GreetingStyle;
   readonly shout: boolean;
-  readonly uploadIo: boolean;
+  readonly uploadIo: UploadMode;
 }
 
 /** Outputs of the action. Field names are camelCase versions of the kebab-case `action.yml` outputs. */
@@ -36,6 +42,21 @@ export function parseStyle(value: string): GreetingStyle {
     throw new Error(`Invalid style "${value}". Expected one of: ${GREETING_STYLES.join(", ")}.`);
   }
   return style;
+}
+
+/**
+ * Parses the `upload_io` input.
+ *
+ * @param value - Raw input value.
+ * @returns The value as an {@link UploadMode}.
+ * @throws Error when the value is not a supported mode.
+ */
+export function parseUploadMode(value: string): UploadMode {
+  const mode = UPLOAD_MODES.find((m) => m === value);
+  if (mode === undefined) {
+    throw new Error(`Invalid upload_io "${value}". Expected one of: ${UPLOAD_MODES.join(", ")}.`);
+  }
+  return mode;
 }
 
 /** Domain logic of the action. Dependencies come in through the constructor. */

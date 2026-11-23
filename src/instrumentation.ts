@@ -1,7 +1,7 @@
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { ActionInputs, ActionOutputs, Logger } from "./action.js";
+import type { ActionInputs, ActionOutputs, Logger, UploadMode } from "./action.js";
 
 /** What one run received and produced. `outputs` is absent when the run failed. */
 export interface IoReport {
@@ -13,6 +13,17 @@ export interface IoReport {
 /** The slice of `@actions/artifact`'s client this module uses, so tests can fake it. */
 export interface ArtifactUploader {
   uploadArtifact(name: string, files: string[], rootDirectory: string): Promise<unknown>;
+}
+
+/**
+ * Decides whether to upload the report.
+ *
+ * @param mode - The `upload_io` input.
+ * @param failed - Whether the run failed.
+ * @returns True when the report should be uploaded.
+ */
+export function shouldUpload(mode: UploadMode, failed: boolean): boolean {
+  return mode === "always" || (mode === "failure" && failed);
 }
 
 /** Name of the JSON file inside the artifact. */

@@ -79,12 +79,12 @@ Then, in the repository settings:
 
 ## The sample action
 
-| Input       | Description                                                                                                                                                  | Required | Default    |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ---------- |
-| `name`      | Name to greet                                                                                                                                                | Yes      |            |
-| `style`     | Greeting style: `friendly` or `formal`                                                                                                                       | No       | `friendly` |
-| `shout`     | Upper-case the greeting (`true`/`false`)                                                                                                                     | No       | `false`    |
-| `upload_io` | Upload inputs and outputs as a workflow artifact (`true`/`false`). Off by default: inputs are uploaded as given, so never turn it on when one holds a secret | No       | `false`    |
+| Input       | Description                                                                                                                                                        | Required | Default    |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ---------- |
+| `name`      | Name to greet                                                                                                                                                      | Yes      |            |
+| `style`     | Greeting style: `friendly` or `formal`                                                                                                                             | No       | `friendly` |
+| `shout`     | Upper-case the greeting (`true`/`false`)                                                                                                                           | No       | `false`    |
+| `upload_io` | When to upload inputs and outputs as a workflow artifact: `never`, `failure` or `always`. Inputs are uploaded as given, so never enable it when one holds a secret | No       | `never`    |
 
 | Output     | Description                 |
 | ---------- | --------------------------- |

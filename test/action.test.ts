@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
-import { parseStyle, runAction } from "../src/action.js";
+import { parseStyle, parseUploadMode, runAction } from "../src/action.js";
 
-const base = { name: "Ada", style: "friendly", shout: false, uploadIo: false } as const;
+const base = { name: "Ada", style: "friendly", shout: false, uploadIo: "never" } as const;
 
 describe("runAction", () => {
   it("greets friendly by default", () => {
@@ -34,5 +34,15 @@ describe("parseStyle", () => {
 
   it("throws on an unknown style", () => {
     expect(() => parseStyle("rude")).toThrow('Invalid style "rude"');
+  });
+});
+
+describe("parseUploadMode", () => {
+  it("accepts supported modes", () => {
+    expect(parseUploadMode("failure")).toBe("failure");
+  });
+
+  it("throws on an unknown mode", () => {
+    expect(() => parseUploadMode("true")).toThrow('Invalid upload_io "true"');
   });
 });
