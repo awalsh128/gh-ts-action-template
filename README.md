@@ -42,6 +42,13 @@ that you replace with your own.
    npm ci && npm run build && npm test
    ```
 
+   Or, from a clone of this repository, let `install-template.sh` do it all: it creates the repository, renames
+   the placeholders, verifies the build, creates `staging` and applies the branch rules.
+
+   ```bash
+   ./install-template.sh <owner>/<your-action> --description "What it does"
+   ```
+
 2. Replace the sample action (see below), then push. CI runs the same build, checks and end-to-end run.
 
 ## Making it yours
