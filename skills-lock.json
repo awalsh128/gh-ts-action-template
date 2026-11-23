@@ -3,63 +3,63 @@
   "skills": {
     "check-pr-release-type": {
       "source": "awalsh128/skills",
-      "commit": "b54a51f5a9f1fc49299795c354232d72498ebc2f",
+      "commit": "f0576701aec4fb5a559a8edc262cf24a0adb3d1b",
       "sourceType": "github",
       "skillPath": "skills/github/check-pr-release-type/SKILL.md",
-      "computedHash": "b60f8bd55c7b0b6edb4566e2447c5e33936a17cef2f5c73c5c9e6dc229505aa7"
+      "computedHash": "5bf4f385339909f89d28ab3b45830e95850047c7d51d8cbd4254fede15c1deb9"
     },
     "code-design": {
       "source": "awalsh128/skills",
-      "commit": "b54a51f5a9f1fc49299795c354232d72498ebc2f",
+      "commit": "f0576701aec4fb5a559a8edc262cf24a0adb3d1b",
       "sourceType": "github",
       "skillPath": "skills/lang/code-design/SKILL.md",
-      "computedHash": "ee0006e6dad935781931800877bf3b021b07b8be8bf980efee5915f52973832c"
+      "computedHash": "d2366cecf23ad20afd6f1d449f0b54ace63092dc1125de54df6bb0c0f7f555d9"
     },
     "create-readme": {
       "source": "awalsh128/skills",
-      "commit": "b54a51f5a9f1fc49299795c354232d72498ebc2f",
+      "commit": "f0576701aec4fb5a559a8edc262cf24a0adb3d1b",
       "sourceType": "github",
       "skillPath": "skills/github/create-readme/SKILL.md",
       "computedHash": "1d67f5a874caca3f3f85a61e6b3b72f1e7963bdd70f8decce780d7b4d965865c"
     },
     "github-cicd": {
       "source": "awalsh128/skills",
-      "commit": "b54a51f5a9f1fc49299795c354232d72498ebc2f",
+      "commit": "f0576701aec4fb5a559a8edc262cf24a0adb3d1b",
       "sourceType": "github",
       "skillPath": "skills/github/github-cicd/SKILL.md",
-      "computedHash": "6a730b5d0f9a701d6f6a1aeaa6215d6ca19d5ba9c9a009481a0b0d39cbdd99e8"
+      "computedHash": "27f1b119ffb56a9a5572b8b0e160c5d063a1e5da1fd1feec4faba2085af09d98"
     },
     "github-ts-action": {
       "source": "awalsh128/skills",
-      "commit": "b54a51f5a9f1fc49299795c354232d72498ebc2f",
+      "commit": "f0576701aec4fb5a559a8edc262cf24a0adb3d1b",
       "sourceType": "github",
       "skillPath": "skills/github/github-ts-action/SKILL.md",
-      "computedHash": "3d93d2a5dc76c93f22c42245dfe98d2cd28fc48ce3156fed98558047421a060f"
+      "computedHash": "d1a0d994bf50e7389a49d57f5852a109fa96768153a2733f14d35b7be1201c6c"
     },
     "npm-audit": {
       "source": "awalsh128/skills",
-      "commit": "b54a51f5a9f1fc49299795c354232d72498ebc2f",
+      "commit": "f0576701aec4fb5a559a8edc262cf24a0adb3d1b",
       "sourceType": "github",
       "skillPath": "skills/dev/npm-audit/SKILL.md",
-      "computedHash": "2e9ac5d94da06c29a870a3f27a88408de5186d0db1c243283adcff4a1ab1a5b5"
+      "computedHash": "352ce09081a743caca2014d50f9de1b27c1f046281270e239462f2f2003d75e8"
     },
     "project-setup": {
       "source": "awalsh128/skills",
-      "commit": "b54a51f5a9f1fc49299795c354232d72498ebc2f",
+      "commit": "f0576701aec4fb5a559a8edc262cf24a0adb3d1b",
       "sourceType": "github",
       "skillPath": "skills/dev/project-setup/SKILL.md",
       "computedHash": "14bcd853cf615d58c18bc72b6ac41a23d6848a1eaf9a46a43e31f90e07d75841"
     },
     "typescript": {
       "source": "awalsh128/skills",
-      "commit": "b54a51f5a9f1fc49299795c354232d72498ebc2f",
+      "commit": "f0576701aec4fb5a559a8edc262cf24a0adb3d1b",
       "sourceType": "github",
       "skillPath": "skills/lang/typescript/SKILL.md",
       "computedHash": "508ead8939ce8f892066bfcd641541aa108a9c200d8998c211aa1a6e617fb1a0"
     },
     "unit-tests": {
       "source": "awalsh128/skills",
-      "commit": "b54a51f5a9f1fc49299795c354232d72498ebc2f",
+      "commit": "f0576701aec4fb5a559a8edc262cf24a0adb3d1b",
       "sourceType": "github",
       "skillPath": "skills/testing/unit-tests/SKILL.md",
       "computedHash": "cd41efa4add5a92c0ca8cdedac35074b5bb479a8173576a062a99e8c09952fef"
