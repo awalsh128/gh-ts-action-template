@@ -25,6 +25,10 @@ Rules for agents working in this TypeScript GitHub Action.
 - Log through `ActionsLogger` from `@awalsh128/winston-github-actions` (pinned to an exact version), created in `src/index.ts` and passed in.
 - NEVER call `core.info`, `core.warning` or `core.error` from `src/` modules.
 
+## Skills
+
+- Update the installed skills with `npm run skills:update`, which removes their `evals/` folders; their fixture manifests would otherwise be scanned as this project's dependencies.
+
 ## Tests
 
 - Vitest, one file per `src` module in `test/`. Mock at the dependency seam.
