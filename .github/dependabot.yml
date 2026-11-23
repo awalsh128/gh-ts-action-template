@@ -45,3 +45,7 @@ updates:
       # when the release job moves to a newer Node.
       - dependency-name: "semantic-release"
         update-types: ["version-update:semver-major"]
+      # The preset's majors need a newer conventional-changelog-writer than the release-notes plugin in
+      # semantic-release bundles; v10 fails with "Missing helper". Drop this when semantic-release moves on.
+      - dependency-name: "conventional-changelog-conventionalcommits"
+        update-types: ["version-update:semver-major"]
