@@ -8,6 +8,12 @@ on:
 permissions:
   contents: read
 
+# Supersede earlier runs for the same pull request only. Runs on staging and main are never cancelled,
+# so promote and release always find a completed CI run for their commit.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   check-branch:
     name: Check branch

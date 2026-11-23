@@ -1,0 +1,12 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/octo-sts/app/refs/heads/main/pkg/octosts/octosts.TrustPolicy.json
+# Release PRs, tags and GitHub Releases: used by release-please.yml on staging only.
+issuer: https://token.actions.githubusercontent.com
+subject_pattern: "repo:awalsh128@2087466/gh-ts-action-template@1469097469:.*"
+claim_pattern:
+  ref: "refs/heads/staging"
+  job_workflow_ref: "awalsh128/gh-ts-action-template/\\.github/workflows/release-please\\.yml@refs/heads/staging"
+
+permissions:
+  contents: write
+  issues: write
+  pull_requests: write
