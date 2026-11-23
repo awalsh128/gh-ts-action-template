@@ -1,0 +1,30 @@
+name: "TypeScript Action Template"
+description: "Template for a TypeScript GitHub Action. Greets a name and reports the greeting."
+author: awalsh128
+branding:
+  icon: "message-circle"
+  color: "green"
+
+inputs:
+  name:
+    description: "Name to greet. Any non-empty string."
+    required: true
+  style:
+    description: "Greeting style. One of: friendly, formal."
+    required: false
+    default: "friendly"
+  shout:
+    description: "Upper-case the greeting. One of: true, false."
+    required: false
+    default: "false"
+  upload_io:
+    description: "Upload the inputs and outputs as the workflow artifact action-io-<run>-<attempt>-<job>-<step>. Inputs are uploaded as given, so leave this off when any input holds a secret. One of: true, false."
+    required: false
+    default: "false"
+outputs:
+  greeting:
+    description: "The generated greeting text."
+
+runs:
+  using: "node24"
+  main: "dist/action/index.js"
