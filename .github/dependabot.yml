@@ -41,3 +41,7 @@ updates:
       # Majors follow engines.node, the oldest Node the action supports.
       - dependency-name: "@types/node"
         update-types: ["version-update:semver-major"]
+      # semantic-release 26 needs Node >=26.13, and publish.yml runs on the Node in .node_ver (24). Drop this
+      # when the release job moves to a newer Node.
+      - dependency-name: "semantic-release"
+        update-types: ["version-update:semver-major"]
