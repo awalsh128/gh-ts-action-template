@@ -30,6 +30,7 @@
     "format:check": "prettier --check .",
     "test": "vitest run --coverage",
     "check:bundle": "node --experimental-strip-types scripts/ops/check_bundle.mts",
+    "skills:update": "npx skills update -p -y && rm -rf .agents/skills/*/evals",
     "release": "semantic-release",
     "release:dry-run": "semantic-release --dry-run"
   },
