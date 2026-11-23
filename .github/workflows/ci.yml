@@ -126,7 +126,7 @@ jobs:
         with:
           name: ${{ github.run_id }}-${{ github.run_attempt }}
           style: formal
-          upload_io: true
+          upload_io: always
       - name: Download the inputs and outputs artifact
         env:
           GH_TOKEN: ${{ github.token }}

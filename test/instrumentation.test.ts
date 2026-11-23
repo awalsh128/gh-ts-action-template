@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { describe, expect, it, vi } from "vitest";
 import type { ActionInputs } from "../src/action.js";
-import { artifactName, IO_REPORT_FILE, uploadIoReport } from "../src/instrumentation.js";
+import { artifactName, IO_REPORT_FILE, shouldUpload, uploadIoReport } from "../src/instrumentation.js";
 
 const env = {
   GITHUB_RUN_ID: "12",
@@ -9,7 +9,7 @@ const env = {
   GITHUB_JOB: "build/test",
   GITHUB_ACTION: "__run_1",
 };
-const inputs: ActionInputs = { name: "Ada", style: "friendly", shout: false, uploadIo: true };
+const inputs: ActionInputs = { name: "Ada", style: "friendly", shout: false, uploadIo: "always" };
 
 describe("artifactName", () => {
   it("is unique per run, attempt, job and step, with unsafe characters replaced", () => {
@@ -66,5 +66,18 @@ describe("uploadIoReport", () => {
     const logger = { info: vi.fn(), warn: vi.fn() };
     await uploadIoReport({ inputs }, { uploadArtifact: vi.fn() }, {}, logger);
     expect(logger.warn).toHaveBeenCalledWith(expect.stringContaining("GITHUB_RUN_ID is not set"));
+  });
+});
+
+describe("shouldUpload", () => {
+  it.each([
+    ["never", false, false],
+    ["never", true, false],
+    ["failure", false, false],
+    ["failure", true, true],
+    ["always", false, true],
+    ["always", true, true],
+  ] as const)("mode %s, failed %s -> %s", (mode, failed, expected) => {
+    expect(shouldUpload(mode, failed)).toBe(expected);
   });
 });

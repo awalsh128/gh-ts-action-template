@@ -176671,6 +176671,8 @@ class ActionsLogger extends distExports.HostLogger {
 
 /** Supported greeting styles. */
 const GREETING_STYLES = ["friendly", "formal"];
+/** When to upload the inputs and outputs as an artifact. */
+const UPLOAD_MODES = ["never", "failure", "always"];
 /**
  * Parses an enum-like input string.
  *
@@ -176684,6 +176686,20 @@ function parseStyle(value) {
         throw new Error(`Invalid style "${value}". Expected one of: ${GREETING_STYLES.join(", ")}.`);
     }
     return style;
+}
+/**
+ * Parses the `upload_io` input.
+ *
+ * @param value - Raw input value.
+ * @returns The value as an {@link UploadMode}.
+ * @throws Error when the value is not a supported mode.
+ */
+function parseUploadMode(value) {
+    const mode = UPLOAD_MODES.find((m) => m === value);
+    if (mode === undefined) {
+        throw new Error(`Invalid upload_io "${value}". Expected one of: ${UPLOAD_MODES.join(", ")}.`);
+    }
+    return mode;
 }
 /** Domain logic of the action. Dependencies come in through the constructor. */
 class ActionRunner {
@@ -176721,6 +176737,16 @@ function runAction(inputs, logger) {
     return new ActionRunner(logger).run(inputs);
 }
 
+/**
+ * Decides whether to upload the report.
+ *
+ * @param mode - The `upload_io` input.
+ * @param failed - Whether the run failed.
+ * @returns True when the report should be uploaded.
+ */
+function shouldUpload(mode, failed) {
+    return mode === "always" || (mode === "failure" && failed);
+}
 /** Name of the JSON file inside the artifact. */
 const IO_REPORT_FILE = "io.json";
 /**
@@ -176777,7 +176803,7 @@ function getInputs() {
         name: getInput("name", { required: true }),
         style: parseStyle(getInput("style")),
         shout: getBooleanInput("shout"),
-        uploadIo: getBooleanInput("upload_io"),
+        uploadIo: parseUploadMode(getInput("upload_io")),
     };
 }
 /** Entrypoint: read inputs, run, set outputs, upload diagnostics, fail on error. */
@@ -176797,7 +176823,7 @@ async function main() {
     }
     finally {
         // Also on failure, so the inputs that caused it are on hand. Skipped when the inputs didn't parse.
-        if (inputs?.uploadIo) {
+        if (inputs && shouldUpload(inputs.uploadIo, error !== undefined)) {
             await uploadIoReport({ inputs, outputs, error }, new DefaultArtifactClient(), process.env, logger);
         }
     }

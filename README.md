@@ -42,6 +42,13 @@ that you replace with your own.
    npm ci && npm run build && npm test
    ```
 
+   Or, from a clone of this repository, let `install-template.sh` do it all: it creates the repository, renames
+   the placeholders, verifies the build, creates `staging` and applies the branch rules.
+
+   ```bash
+   ./install-template.sh <owner>/<your-action> --description "What it does"
+   ```
+
 2. Replace the sample action (see below), then push. CI runs the same build, checks and end-to-end run.
 
 ## Making it yours
@@ -82,12 +89,12 @@ Then, in the repository settings:
 
 ## The sample action
 
-| Input       | Description                                                                                                                                                  | Required | Default    |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ---------- |
-| `name`      | Name to greet                                                                                                                                                | Yes      |            |
-| `style`     | Greeting style: `friendly` or `formal`                                                                                                                       | No       | `friendly` |
-| `shout`     | Upper-case the greeting (`true`/`false`)                                                                                                                     | No       | `false`    |
-| `upload_io` | Upload inputs and outputs as a workflow artifact (`true`/`false`). Off by default: inputs are uploaded as given, so never turn it on when one holds a secret | No       | `false`    |
+| Input       | Description                                                                                                                                                        | Required | Default    |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ---------- |
+| `name`      | Name to greet                                                                                                                                                      | Yes      |            |
+| `style`     | Greeting style: `friendly` or `formal`                                                                                                                             | No       | `friendly` |
+| `shout`     | Upper-case the greeting (`true`/`false`)                                                                                                                           | No       | `false`    |
+| `upload_io` | When to upload inputs and outputs as a workflow artifact: `never`, `failure` or `always`. Inputs are uploaded as given, so never enable it when one holds a secret | No       | `never`    |
 
 | Output     | Description                 |
 | ---------- | --------------------------- |
