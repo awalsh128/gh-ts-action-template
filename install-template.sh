@@ -14,6 +14,7 @@ Options:
   --description TEXT   Repository and action description (default: "TypeScript GitHub Action")
   --private            Create a private repository (default: public)
   --skip-rulesets      Do not create staging or apply the branch rules
+  --release-tool TOOL  Release tool: semantic-release (default) or release-please
   --octo-sts-installed Skip the pause: the Octo STS app is already installed on the new repository
   --dry-run            Print the steps without running them
   -h, --help           Show this help
@@ -38,6 +39,31 @@ run() {
 # Title-cases a repository name: "my-cool-action" -> "My Cool Action".
 title_from() {
   printf '%s' "$1" | sed -E 's/[-_.]+/ /g' | awk '{ for (i = 1; i <= NF; i++) $i = toupper(substr($i, 1, 1)) substr($i, 2) } 1'
+}
+
+# Applies the chosen release tool. The template ships semantic-release; the alternatives wait in
+# .github/release-tools/ and are removed whether or not one is chosen. Arg: tool.
+use_release_tool() {
+  local tool="$1" dir=".github/release-tools/release-please"
+  if [[ "$tool" == "release-please" && -d "$dir" ]]; then
+    # release-please opens a Release PR on staging and tags when it merges, so semantic-release, its
+    # publish workflow, its trust policy and the rc-based major check all go.
+    git rm -q --ignore-unmatch release.config.ts .github/workflows/publish.yml \
+      .github/chainguard/release.sts.yaml scripts/ops/confirm_major.mts test/confirm_major.test.ts
+    cp "$dir/release-please.yml" "$dir/promote.yml" .github/workflows/
+    cp "$dir/release-please-config.json" "$dir/.release-please-manifest.json" .
+    mkdir -p .github/chainguard
+    cp "$dir/release-please.sts.yaml" .github/chainguard/
+    node --input-type=module -e '
+      import { readFileSync, writeFileSync } from "node:fs";
+      const pkg = JSON.parse(readFileSync("package.json", "utf8"));
+      delete pkg.scripts["release"];
+      delete pkg.scripts["release:dry-run"];
+      writeFileSync("package.json", JSON.stringify(pkg, null, 2) + "\n");
+    '
+    npm uninstall semantic-release --package-lock-only --ignore-scripts
+  fi
+  rm -rf .github/release-tools
 }
 
 # Points the Octo STS trust policies at the new repository. They match the owner and repository IDs and the
@@ -104,7 +130,7 @@ NODE
 }
 
 main() {
-  local slug="" description="TypeScript GitHub Action" visibility="--public" rulesets=true octo_confirmed=false
+  local slug="" description="TypeScript GitHub Action" visibility="--public" rulesets=true octo_confirmed=false release_tool="semantic-release"
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -112,6 +138,7 @@ main() {
       --private) visibility="--private"; shift ;;
       --skip-rulesets) rulesets=false; shift ;;
       --octo-sts-installed) octo_confirmed=true; shift ;;
+      --release-tool) release_tool="${2:?--release-tool needs a value}"; shift 2 ;;
       --dry-run) DRY_RUN=true; shift ;;
       -h | --help) usage; return 0 ;;
       -*) echo "Unknown option: $1" >&2; usage >&2; return 2 ;;
@@ -122,6 +149,10 @@ main() {
   if [[ ! "$slug" =~ ^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$ ]]; then
     echo "Expected <owner>/<repo>, got: '${slug}'" >&2
     usage >&2
+    return 2
+  fi
+  if [[ "$release_tool" != "semantic-release" && "$release_tool" != "release-please" ]]; then
+    echo "Unknown --release-tool: '${release_tool}'. Use semantic-release or release-please." >&2
     return 2
   fi
   local owner="${slug%%/*}" repo="${slug##*/}"
@@ -140,7 +171,7 @@ main() {
   run gh repo create "$slug" --template "$TEMPLATE" "$visibility" --description "$description" --clone
 
   if [[ "$DRY_RUN" == true ]]; then
-    step "Dry run: would rename placeholders, retarget Octo STS policies, verify, push, create staging, apply rulesets and wait for the Octo STS app install in ./$repo"
+    step "Dry run: would rename placeholders, apply $release_tool, retarget Octo STS policies, verify, push, create staging, apply rulesets and wait for the Octo STS app install in ./$repo"
     return 0
   fi
   cd "$repo"
@@ -148,6 +179,7 @@ main() {
   step "Rename placeholders"
   personalize "$owner" "$repo" "$description"
   git rm -q --ignore-unmatch install-template.sh
+  use_release_tool "$release_tool"
   retarget_policies "$owner" "$repo"
 
   step "Install, build and test"
