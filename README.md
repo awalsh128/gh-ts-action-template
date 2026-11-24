@@ -61,6 +61,28 @@ that you replace with your own.
 
 ## Making it yours
 
+### With an agent
+
+Open your new repository in Claude Code, Codex, Cursor or Gemini. It reads `AGENTS.md` and the skills in
+`.agents/skills/` on its own, so paste this prompt and fill in the placeholders:
+
+```text
+Turn this template into my own GitHub Action, using the github-ts-action skill
+(.agents/skills/github-ts-action/SKILL.md) and the rules in AGENTS.md. src/index.ts is the input and output
+glue, src/action.ts holds the greet logic, and src/instrumentation.ts handles the artifact uploads.
+
+- Name: <action name>
+- What it does: <one or two sentences>
+- Inputs: <name, description, required, default for each>
+- Outputs: <name and description for each>
+
+Replace the sample greet action: update action.yml, package.json, src/, test/, the integration job in
+.github/workflows/ci.yml, and the README and AGENTS.md. Run the checks in AGENTS.md, regenerate dist with
+npm run build, and report anything you could not verify. Do not enable releases or push.
+```
+
+### By hand
+
 Everything is copied into your new repository, so change these before the first release:
 
 | File                            | Change                                                                       |
