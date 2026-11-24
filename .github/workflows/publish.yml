@@ -22,7 +22,7 @@ jobs:
     # Off switch for every route to a release. Releases stay held until RELEASES_ENABLED is 'true'; a dry run
     # publishes nothing, so it is always allowed.
     if: ${{ vars.RELEASES_ENABLED == 'true' || inputs.dry-run }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     environment: release
     # One release per branch at a time; never cancel one that is tagging.

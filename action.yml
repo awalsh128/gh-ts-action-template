@@ -21,9 +21,15 @@ inputs:
     description: "When to upload the inputs and outputs as the workflow artifact action-io-<run>-<attempt>-<job>-<step>. Inputs are uploaded as given, so keep this at never when any input holds a secret. One of: never, failure, always."
     required: false
     default: "never"
+  output_json:
+    description: "Also upload every output as one JSON file, outputs.json, in the workflow artifact action-outputs-<run>-<attempt>-<job>-<step>. Unlike upload_io it holds no inputs, so it is safe when an input holds a secret. Nothing is uploaded when the run fails. One of: true, false."
+    required: false
+    default: "false"
 outputs:
   greeting:
     description: "The generated greeting text."
+  details:
+    description: "A JSON object describing the greeting: its text, style, shout flag, words and stats (characters and words). Parse it with fromJSON(). In outputs.json it is a nested object, not a string."
 
 runs:
   using: "node24"
