@@ -127,27 +127,39 @@ jobs:
           name: ${{ github.run_id }}-${{ github.run_attempt }}
           style: formal
           upload_io: always
-      - name: Download the inputs and outputs artifact
+          output_json: true
+      - name: Download the inputs and outputs artifacts
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           RUN_ID: ${{ github.run_id }}
-          ARTIFACT: action-io-${{ github.run_id }}-${{ github.run_attempt }}-integration-greet
+          SUFFIX: ${{ github.run_id }}-${{ github.run_attempt }}-integration-greet
         run: |
           set -euo pipefail
           # A just-finalized artifact can take a few seconds to become listable.
-          for attempt in 1 2 3 4 5 6 7 8 9 10; do
-            if gh run download "$RUN_ID" --name "$ARTIFACT" --dir io; then exit 0; fi
-            echo "Attempt $attempt: $ARTIFACT not available yet"
-            sleep 3
-          done
-          echo "::error::Artifact $ARTIFACT was never available"
-          exit 1
+          download() {
+            for attempt in 1 2 3 4 5 6 7 8 9 10; do
+              if gh run download "$RUN_ID" --name "$1" --dir "$2"; then return 0; fi
+              echo "Attempt $attempt: $1 not available yet"
+              sleep 3
+            done
+            echo "::error::Artifact $1 was never available"
+            return 1
+          }
+          download "action-io-$SUFFIX" io
+          download "action-outputs-$SUFFIX" outputs
       - name: Verify
         env:
           GREETING: ${{ steps.greet.outputs.greeting }}
+          DETAILS: ${{ steps.greet.outputs.details }}
           EXPECTED: Good day, ${{ github.run_id }}-${{ github.run_attempt }}.
         run: |
           set -euo pipefail
           [ "$GREETING" = "$EXPECTED" ] || { echo "Unexpected greeting: $GREETING"; exit 1; }
           [ "$(jq -r .outputs.greeting io/io.json)" = "$EXPECTED" ] || { echo "Artifact missing greeting"; exit 1; }
+          # The details output is a JSON string; outputs.json holds it as a nested object.
+          [ "$(jq -r .text <<<"$DETAILS")" = "$EXPECTED" ] || { echo "Unexpected details: $DETAILS"; exit 1; }
+          [ "$(jq -r .greeting outputs/outputs.json)" = "$EXPECTED" ] || { echo "outputs.json missing greeting"; exit 1; }
+          jq -e '.details | type == "object" and .stats.words == 3 and (.words | length) == 3' outputs/outputs.json \
+            || { echo "outputs.json details is not the nested object"; exit 1; }
+          jq -e 'has("inputs") | not' outputs/outputs.json || { echo "outputs.json must not hold inputs"; exit 1; }

@@ -16,11 +16,26 @@ export interface ActionInputs {
   readonly style: GreetingStyle;
   readonly shout: boolean;
   readonly uploadIo: UploadMode;
+  readonly outputJson: boolean;
+}
+
+/** A complex output: nested objects and arrays, to show how they travel as JSON. */
+export interface GreetingDetails {
+  readonly text: string;
+  readonly style: GreetingStyle;
+  readonly shout: boolean;
+  readonly words: readonly string[];
+  readonly stats: {
+    readonly characters: number;
+    readonly words: number;
+  };
 }
 
 /** Outputs of the action. Field names are camelCase versions of the kebab-case `action.yml` outputs. */
 export interface ActionOutputs {
   readonly greeting: string;
+  /** An object, which a workflow output can only carry as a JSON string (see `index.ts`). */
+  readonly details: GreetingDetails;
 }
 
 /** Logging seam so tests can capture messages without `@actions/core`. */
@@ -78,7 +93,15 @@ export class ActionRunner {
     const text = inputs.style === "formal" ? `Good day, ${name}.` : `Hey ${name}!`;
     const greeting = inputs.shout ? text.toUpperCase() : text;
     this.logger.info(`Generated greeting: ${greeting}`);
-    return { greeting };
+    const words = greeting.split(/\s+/);
+    const details: GreetingDetails = {
+      text: greeting,
+      style: inputs.style,
+      shout: inputs.shout,
+      words,
+      stats: { characters: greeting.length, words: words.length },
+    };
+    return { greeting, details };
   }
 }
 

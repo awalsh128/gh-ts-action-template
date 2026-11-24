@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import { parseStyle, parseUploadMode, runAction } from "../src/action.js";
 
-const base = { name: "Ada", style: "friendly", shout: false, uploadIo: "never" } as const;
+const base = { name: "Ada", style: "friendly", shout: false, uploadIo: "never", outputJson: false } as const;
 
 describe("runAction", () => {
   it("greets friendly by default", () => {
     const logger = { info: vi.fn(), warn: vi.fn() };
-    expect(runAction(base, logger)).toEqual({ greeting: "Hey Ada!" });
+    expect(runAction(base, logger).greeting).toBe("Hey Ada!");
     expect(logger.info).toHaveBeenCalledWith("Generated greeting: Hey Ada!");
   });
 
@@ -18,6 +18,17 @@ describe("runAction", () => {
 
   it("upper-cases when shouting", () => {
     expect(runAction({ ...base, shout: true }, { info: vi.fn(), warn: vi.fn() }).greeting).toBe("HEY ADA!");
+  });
+
+  it("describes the greeting as a nested object", () => {
+    const logger = { info: vi.fn(), warn: vi.fn() };
+    expect(runAction({ ...base, style: "formal", shout: true }, logger).details).toEqual({
+      text: "GOOD DAY, ADA.",
+      style: "formal",
+      shout: true,
+      words: ["GOOD", "DAY,", "ADA."],
+      stats: { characters: 14, words: 3 },
+    });
   });
 
   it("rejects a blank name", () => {

@@ -176722,7 +176722,15 @@ class ActionRunner {
         const text = inputs.style === "formal" ? `Good day, ${name}.` : `Hey ${name}!`;
         const greeting = inputs.shout ? text.toUpperCase() : text;
         this.logger.info(`Generated greeting: ${greeting}`);
-        return { greeting };
+        const words = greeting.split(/\s+/);
+        const details = {
+            text: greeting,
+            style: inputs.style,
+            shout: inputs.shout,
+            words,
+            stats: { characters: greeting.length, words: words.length },
+        };
+        return { greeting, details };
     }
 }
 /**
@@ -176754,10 +176762,11 @@ const IO_REPORT_FILE = "io.json";
  * don't collide.
  *
  * @param env - Environment variables of the runner.
+ * @param prefix - What the artifact holds, so two artifacts of one step differ.
  * @returns The artifact name.
  * @throws Error when a runner variable is missing.
  */
-function artifactName(env) {
+function artifactName(env, prefix = "action-io") {
     const parts = ["GITHUB_RUN_ID", "GITHUB_RUN_ATTEMPT", "GITHUB_JOB", "GITHUB_ACTION"].map((key) => {
         const value = env[key];
         if (value === undefined || value === "") {
@@ -176766,11 +176775,35 @@ function artifactName(env) {
         return value;
     });
     // Artifact names forbid characters such as / and :.
-    return `action-io-${parts.join("-")}`.replace(/[^A-Za-z0-9._-]/g, "_");
+    return `${prefix}-${parts.join("-")}`.replace(/[^A-Za-z0-9._-]/g, "_");
+}
+/** Name of the JSON file, inside the outputs artifact. */
+const OUTPUTS_FILE = "outputs.json";
+/**
+ * Uploads `payload` as one JSON file in an artifact. Never throws: a failed upload is a warning, because
+ * diagnostics must not fail a run that otherwise worked.
+ */
+async function uploadJson(payload, target, uploader, env, logger) {
+    let dir;
+    try {
+        const name = artifactName(env, target.prefix);
+        dir = await mkdtemp(join(tmpdir(), `${target.prefix}-`));
+        const file = join(dir, target.file);
+        await writeFile$1(file, `${JSON.stringify(payload, null, 2)}\n`);
+        await uploader.uploadArtifact(name, [file], dir);
+        logger.info(`Uploaded ${target.what} as artifact ${name}.`);
+    }
+    catch (error) {
+        logger.warn(`Could not upload ${target.what}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+    finally {
+        if (dir !== undefined) {
+            await rm$1(dir, { recursive: true, force: true });
+        }
+    }
 }
 /**
- * Uploads the report as one JSON artifact. Never throws: a failed upload is a warning, because
- * diagnostics must not fail a run that otherwise worked.
+ * Uploads the report as one JSON artifact.
  *
  * @param report - Inputs, outputs and error of the run.
  * @param uploader - Artifact client.
@@ -176778,23 +176811,20 @@ function artifactName(env) {
  * @param logger - Where the outcome is reported.
  */
 async function uploadIoReport(report, uploader, env, logger) {
-    let dir;
-    try {
-        const name = artifactName(env);
-        dir = await mkdtemp(join(tmpdir(), "action-io-"));
-        const file = join(dir, IO_REPORT_FILE);
-        await writeFile$1(file, `${JSON.stringify(report, null, 2)}\n`);
-        await uploader.uploadArtifact(name, [file], dir);
-        logger.info(`Uploaded inputs and outputs as artifact ${name}.`);
-    }
-    catch (error) {
-        logger.warn(`Could not upload inputs and outputs: ${error instanceof Error ? error.message : String(error)}`);
-    }
-    finally {
-        if (dir !== undefined) {
-            await rm$1(dir, { recursive: true, force: true });
-        }
-    }
+    await uploadJson(report, { prefix: "action-io", file: IO_REPORT_FILE, what: "inputs and outputs" }, uploader, env, logger);
+}
+/**
+ * Uploads every output as one JSON artifact. Unlike {@link uploadIoReport} it holds no inputs, so it is
+ * safe when an input is a secret. Values keep their types: an object output is a nested object here, not
+ * the JSON string a workflow output carries.
+ *
+ * @param outputs - The outputs of a successful run.
+ * @param uploader - Artifact client.
+ * @param env - Environment variables of the runner.
+ * @param logger - Where the outcome is reported.
+ */
+async function uploadOutputsJson(outputs, uploader, env, logger) {
+    await uploadJson(outputs, { prefix: "action-outputs", file: OUTPUTS_FILE, what: "outputs" }, uploader, env, logger);
 }
 
 /** Reads and validates the action inputs. */
@@ -176804,6 +176834,7 @@ function getInputs() {
         style: parseStyle(getInput("style")),
         shout: getBooleanInput("shout"),
         uploadIo: parseUploadMode(getInput("upload_io")),
+        outputJson: getBooleanInput("output_json"),
     };
 }
 /** Entrypoint: read inputs, run, set outputs, upload diagnostics, fail on error. */
@@ -176816,12 +176847,18 @@ async function main() {
         inputs = getInputs();
         outputs = runAction(inputs, logger);
         setOutput("greeting", outputs.greeting);
+        // A workflow output is a string, so an object travels as JSON (read it with fromJSON()).
+        setOutput("details", JSON.stringify(outputs.details));
     }
     catch (e) {
         error = e instanceof Error ? e.message : String(e);
         setFailed(error);
     }
     finally {
+        // Only after a run that produced outputs; upload_io: failure covers a failed run.
+        if (inputs?.outputJson && outputs) {
+            await uploadOutputsJson(outputs, new DefaultArtifactClient(), process.env, logger);
+        }
         // Also on failure, so the inputs that caused it are on hand. Skipped when the inputs didn't parse.
         if (inputs && shouldUpload(inputs.uploadIo, error !== undefined)) {
             await uploadIoReport({ inputs, outputs, error }, new DefaultArtifactClient(), process.env, logger);
