@@ -127,25 +127,59 @@ variable and writes outputs to the file in `GITHUB_OUTPUT`:
 ```bash
 npm run build
 export GITHUB_OUTPUT="$(mktemp)"
-INPUT_NAME=Ada INPUT_STYLE=formal INPUT_SHOUT=false INPUT_UPLOAD_IO=never node dist/action/index.js
+INPUT_NAME=Ada INPUT_STYLE=formal INPUT_SHOUT=false INPUT_UPLOAD_IO=never INPUT_OUTPUT_JSON=false node dist/action/index.js
 # Generated greeting: Good day, Ada.
-cat "$GITHUB_OUTPUT"   # the greeting output
+cat "$GITHUB_OUTPUT"   # the greeting and details outputs
 ```
 
 > [!NOTE]
 > The runner applies the defaults from `action.yml`; a direct run does not, so set every input. Leaving one out
 > fails with an error such as `Invalid style "". Expected one of: friendly, formal.`
 
-| Input       | Description                                                                                                                                                        | Required | Default    |
-| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ---------- |
-| `name`      | Name to greet                                                                                                                                                      | Yes      |            |
-| `style`     | Greeting style: `friendly` or `formal`                                                                                                                             | No       | `friendly` |
-| `shout`     | Upper-case the greeting (`true`/`false`)                                                                                                                           | No       | `false`    |
-| `upload_io` | When to upload inputs and outputs as a workflow artifact: `never`, `failure` or `always`. Inputs are uploaded as given, so never enable it when one holds a secret | No       | `never`    |
+| Input         | Description                                                                                                                                                        | Required | Default    |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------- | ---------- |
+| `name`        | Name to greet                                                                                                                                                      | Yes      |            |
+| `style`       | Greeting style: `friendly` or `formal`                                                                                                                             | No       | `friendly` |
+| `shout`       | Upper-case the greeting (`true`/`false`)                                                                                                                           | No       | `false`    |
+| `upload_io`   | When to upload inputs and outputs as a workflow artifact: `never`, `failure` or `always`. Inputs are uploaded as given, so never enable it when one holds a secret | No       | `never`    |
+| `output_json` | Also upload every output as one `outputs.json` artifact (`true`/`false`), without the inputs                                                                       | No       | `false`    |
 
-| Output     | Description                 |
-| ---------- | --------------------------- |
-| `greeting` | The generated greeting text |
+| Output     | Description                                                                                                     |
+| ---------- | --------------------------------------------------------------------------------------------------------------- |
+| `greeting` | The generated greeting text                                                                                     |
+| `details`  | A JSON object describing the greeting: `text`, `style`, `shout`, `words` and `stats`. Read it with `fromJSON()` |
+
+### Outputs as one JSON file
+
+A workflow output is always a string, so an object like `details` travels as JSON text. Set `output_json: true`
+to also upload every output as one `outputs.json` in the artifact
+`action-outputs-<run>-<attempt>-<job>-<step>`, where `details` is a real nested object. It holds no inputs, so
+it is safe when an input is a secret (`upload_io` is not). Nothing is uploaded when the run fails.
+
+```json
+{
+  "greeting": "Good day, Ada.",
+  "details": {
+    "text": "Good day, Ada.",
+    "style": "formal",
+    "shout": false,
+    "words": ["Good", "day,", "Ada."],
+    "stats": { "characters": 14, "words": 3 }
+  }
+}
+```
+
+```yaml
+- id: greet
+  uses: awalsh128/gh-ts-action-template@main
+  with:
+    name: Ada
+    style: formal
+    output_json: true
+- env:
+    DETAILS: ${{ steps.greet.outputs.details }}
+  run: jq -r .stats.words <<<"$DETAILS" # 3
+```
 
 ## Development
 
