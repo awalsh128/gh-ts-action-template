@@ -126,7 +126,7 @@ Then, in the repository settings:
 
 ## The sample action
 
-Use it in a workflow, pinning to a release tag once one exists:
+Use it in a workflow, pinned to the commit of a release tag:
 
 ```yaml
 jobs:
@@ -134,7 +134,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - id: greet
-        uses: awalsh128/gh-ts-action-template@main
+        uses: awalsh128/gh-ts-action-template@879d81867e3af999ef59ad58ae3851b8a40984b8 # v1.0.0
         with:
           name: Ada
           style: formal
@@ -193,7 +193,7 @@ it is safe when an input is a secret (`upload_io` is not). Nothing is uploaded w
 
 ```yaml
 - id: greet
-  uses: awalsh128/gh-ts-action-template@main
+  uses: awalsh128/gh-ts-action-template@879d81867e3af999ef59ad58ae3851b8a40984b8 # v1.0.0
   with:
     name: Ada
     style: formal
