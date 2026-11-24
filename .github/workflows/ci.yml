@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   setup-and-cache:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: read
@@ -55,7 +55,7 @@ jobs:
   codeql:
     needs: setup-and-cache
     if: github.event.pull_request.head.repo.fork != true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: read
@@ -73,7 +73,7 @@ jobs:
 
   linters:
     needs: setup-and-cache
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: read
@@ -89,7 +89,7 @@ jobs:
 
   testing:
     needs: setup-and-cache
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: read
@@ -111,7 +111,7 @@ jobs:
 
   integration:
     needs: testing
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
       contents: read
